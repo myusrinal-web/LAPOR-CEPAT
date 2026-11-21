@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAPOR CEPAT - Layanan Pengaduan Fasilitas Kantor Setda Kota Kendari</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- HTML5-QRCode Scanner Library CDN -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <!-- QRCode Generator JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        kendari: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#16a34a',
+                            600: '#15803d',
+                            700: '#166534',
+                            800: '#14532d',
+                            900: '#134e2a'
+                        },
+                        brand: {
+                            blue: '#0284c7',
+                            amber: '#f59e0b',
+                            rose: '#e11d48'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        .badge-pulse {
+            box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7);
+            animation: pulse-green 2s infinite;
+        }
+        @keyframes pulse-green {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(22, 163, 74, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+        }
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- HEADER / NAVIGATION -->
+    <header class="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <!-- Logo & Subtitle -->
+                <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('pelaporan')">
+                    <div class="bg-gradient-to-tr from-emerald-600 to-teal-500 text-white p-2.5 rounded-xl shadow-md">
+                        <i data-lucide="wrench" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-extrabold text-lg text-slate-900 tracking-tight">LAPOR CEPAT</span>
+                            <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase border border-emerald-300">SPBE Kota Kendari</span>
+                        </div>
+                        <p class="text-xs text-slate-500 font-medium">Bagian Umum Sekretariat Daerah Kota Kendari</p>
+                    </div>
+                </div>
+
+                <!-- Navigation Tabs -->
+                <nav class="hidden md:flex space-x-1 bg-slate-100 p-1 rounded-xl">
+                    <button id="nav-pelaporan" onclick="switchTab('pelaporan')" class="nav-btn px-4 py-2 text-sm font-semibold rounded-lg text-slate-700 bg-white shadow-sm flex items-center gap-2 transition-all">
+                        <i data-lucide="qr-code" class="w-4 h-4 text-emerald-600"></i> Buat Laporan / Scan
+                    </button>
+                    <button id="nav-tracking" onclick="switchTab('tracking')" class="nav-btn px-4 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 flex items-center gap-2 transition-all">
+                        <i data-lucide="search" class="w-4 h-4 text-blue-600"></i> Lacak Tiket
+                    </button>
+                    <button id="nav-dashboard" onclick="switchTab('dashboard')" class="nav-btn px-4 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 flex items-center gap-2 transition-all">
+                        <i data-lucide="layout-dashboard" class="w-4 h-4 text-purple-600"></i> Dashboard Pengelola
+                    </button>
+                    <button id="nav-qr-generator" onclick="switchTab('qr-generator')" class="nav-btn px-4 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 flex items-center gap-2 transition-all">
+                        <i data-lucide="printer" class="w-4 h-4 text-amber-600"></i> QR Code Aset
+                    </button>
+                </nav>
+
+                <!-- Status Badge Header -->
+                <div class="hidden lg:flex items-center gap-2 bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg border border-emerald-200 text-xs font-semibold">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 badge-pulse"></span>
+                    SLA Response: &lt; 24 Jam Real-Time
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Nav Menu -->
+        <div class="md:hidden flex border-t border-slate-200 overflow-x-auto bg-slate-50 p-2 gap-1 justify-around text-xs">
+            <button onclick="switchTab('pelaporan')" class="flex flex-col items-center p-2 font-medium text-emerald-700 font-semibold">
+                <i data-lucide="qr-code" class="w-5 h-5 mb-1"></i> Scan / Lapor
+            </button>
+            <button onclick="switchTab('tracking')" class="flex flex-col items-center p-2 font-medium text-slate-600">
+                <i data-lucide="search" class="w-5 h-5 mb-1"></i> Lacak
+            </button>
+            <button onclick="switchTab('dashboard')" class="flex flex-col items-center p-2 font-medium text-slate-600">
+                <i data-lucide="layout-dashboard" class="w-5 h-5 mb-1"></i> Dashboard
+            </button>
+            <button onclick="switchTab('qr-generator')" class="flex flex-col items-center p-2 font-medium text-slate-600">
+                <i data-lucide="printer" class="w-5 h-5 mb-1"></i> Stiker QR
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- ================= TAB 1: SCANNER & FORM PELAPORAN ================= -->
+        <section id="tab-pelaporan" class="space-y-6">
+            <!-- Banner Inovasi -->
+            <div class="bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-800 rounded-2xl text-white p-6 md:p-8 shadow-xl relative overflow-hidden">
+                <div class="absolute -right-10 -bottom-10 opacity-10">
+                    <i data-lucide="shield-check" class="w-80 h-80"></i>
+                </div>
+                <div class="relative z-10 max-w-3xl space-y-3">
+                    <span class="bg-emerald-500/30 text-emerald-200 text-xs font-bold px-3 py-1 rounded-full border border-emerald-400/30">
+                        Inovasi Daerah Kota Kendari • SPBE Modern
+                    </span>
+                    <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">
+                        Layanan Pengaduan Fasilitas Perkantoran Digital
+                    </h1>
+                    <p class="text-emerald-100 text-sm md:text-base leading-relaxed">
+                        Transformasi penanganan kerusakan aset kantor (AC, Lift, Lampu, Toilet, Kendaraan Dinas). Cukup scan QR Code pada fisik aset untuk respon cepat kurang dari 24 jam.
+                    </p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- SISI KIRI: Scan QR & Quick Demo Selector -->
+                <div class="lg:col-span-5 space-y-6">
+                    <!-- Scanner Box -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                                <i data-lucide="camera" class="w-5 h-5 text-emerald-600"></i> Scan QR Code Aset
+                            </h2>
+                            <span class="text-xs text-slate-500">Kamera / Simulasi</span>
+                        </div>
+                        
+                        <!-- Video Camera Reader Container -->
+                        <div id="qr-reader-container" class="relative bg-slate-900 rounded-xl overflow-hidden min-h-[220px] flex flex-col items-center justify-center text-center p-4">
+                            <div id="qr-reader" class="w-full"></div>
+                            <div id="qr-placeholder" class="space-y-3 py-6">
+                                <i data-lucide="qr-code" class="w-16 h-16 text-slate-600 mx-auto animate-pulse"></i>
+                                <p class="text-xs text-slate-400 max-w-xs">Arahkan kamera ke stiker QR Code yang terpasang di unit AC, Lift, Toilet, atau Kendaraan Dinas.</p>
+                                <button onclick="startQRScanner()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-lg shadow transition inline-flex items-center gap-2">
+                                    <i data-lucide="video" class="w-4 h-4"></i> Aktifkan Kamera Scanner
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Simulator Pengujian (Quick Asset Selector) -->
+                        <div class="border-t border-slate-100 pt-4 space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Atau Pilih Aset Simulasi:</span>
+                                <span class="text-[10px] bg-slate-100 px-2 py-0.5 rounded text-slate-500">Demo Instant</span>
+                            </div>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                <button onclick="simulateQRScan('AC-LT2-01', 'Air Conditioner (AC) Dual Inverter 2PK', 'Gedung Utama - Lantai 2 (Ruang Rapat VIP)', 'AC')" class="p-2.5 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/50 rounded-xl text-left transition group">
+                                    <i data-lucide="air-vent" class="w-4 h-4 text-blue-500 mb-1 group-hover:scale-110 transition"></i>
+                                    <div class="font-bold text-xs text-slate-800">AC Lantai 2</div>
+                                    <div class="text-[10px] text-slate-400">AC-LT2-01</div>
+                                </button>
+                                <button onclick="simulateQRScan('LFT-GD-02', 'Lift Penumpang Utama Gedung A', 'Gedung Utama - Lobby Barat', 'Lift')" class="p-2.5 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/50 rounded-xl text-left transition group">
+                                    <i data-lucide="arrow-up-down" class="w-4 h-4 text-purple-500 mb-1 group-hover:scale-110 transition"></i>
+                                    <div class="font-bold text-xs text-slate-800">Lift Penumpang</div>
+                                    <div class="text-[10px] text-slate-400">LFT-GD-02</div>
+                                </button>
+                                <button onclick="simulateQRScan('TLT-PR-03', 'Toilet Pria & Urinoir 03', 'Gedung Sekretariat - Lantai 1', 'Toilet')" class="p-2.5 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/50 rounded-xl text-left transition group">
+                                    <i data-lucide="droplet" class="w-4 h-4 text-cyan-500 mb-1 group-hover:scale-110 transition"></i>
+                                    <div class="font-bold text-xs text-slate-800">Toilet Pria 01</div>
+                                    <div class="text-[10px] text-slate-400">TLT-PR-03</div>
+                                </button>
+                                <button onclick="simulateQRScan('LMP-AU-05', 'Lampu LED Panel & Sakelar Utama', 'Aula Samaturu Setda', 'Lampu')" class="p-2.5 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/50 rounded-xl text-left transition group">
+                                    <i data-lucide="lightbulb" class="w-4 h-4 text-amber-500 mb-1 group-hover:scale-110 transition"></i>
+                                    <div class="font-bold text-xs text-slate-800">Lampu Aula</div>
+                                    <div class="text-[10px] text-slate-400">LMP-AU-05</div>
+                                </button>
+                                <button onclick="simulateQRScan('KDN-DT-09', 'Kendaraan Dinas Toyota Innova DT 1020 A', 'Area Parkir Pejabat Setda', 'Kendaraan')" class="p-2.5 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/50 rounded-xl text-left transition group">
+                                    <i data-lucide="car" class="w-4 h-4 text-rose-500 mb-1 group-hover:scale-110 transition"></i>
+                                    <div class="font-bold text-xs text-slate-800">Mobil Dinas</div>
+                                    <div class="text-[10px] text-slate-400">KDN-DT-09</div>
+                                </button>
+                                <button onclick="resetReportForm()" class="p-2.5 border border-dashed border-slate-300 hover:bg-slate-100 rounded-xl text-center text-slate-500 text-xs font-semibold flex flex-col items-center justify-center">
+                                    <i data-lucide="refresh-cw" class="w-4 h-4 mb-1"></i> Reset Input
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ringkasan Alur Kerja SLA -->
+                    <div class="bg-emerald-50/80 border border-emerald-200 p-5 rounded-2xl space-y-3">
+                        <div class="flex items-center gap-2 text-emerald-800 font-bold text-sm">
+                            <i data-lucide="clock" class="w-4 h-4"></i> Standar Operasional (SLA Penanganan)
+                        </div>
+                        <ul class="text-xs text-emerald-900 space-y-2">
+                            <li class="flex items-start gap-2">
+                                <span class="bg-emerald-200 text-emerald-800 rounded-full w-4 h-4 flex items-center justify-center font-bold text-[10px] mt-0.5">1</span>
+                                <span><strong>Notifikasi Instan:</strong> Tiket masuk langsung terkirim ke WhatsApp/Portal Teknisi Bagian Umum.</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="bg-emerald-200 text-emerald-800 rounded-full w-4 h-4 flex items-center justify-center font-bold text-[10px] mt-0.5">2</span>
+                                <span><strong>Respon Awal:</strong> Maksimal 60 menit teknisi mengonfirmasi pengaduan.</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="bg-emerald-200 text-emerald-800 rounded-full w-4 h-4 flex items-center justify-center font-bold text-[10px] mt-0.5">3</span>
+                                <span><strong>Penyelesaian Perbaikan:</strong> Maksimal 1x24 jam fasilitas beroperasi kembali.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- SISI KANAN: Form Pengaduan Kerusakan -->
+                <div class="lg:col-span-7">
+                    <div class="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm relative">
+                        <!-- Header Form -->
+                        <div class="border-b border-slate-100 pb-5 mb-6 flex justify-between items-start">
+                            <div>
+                                <h2 class="text-lg font-extrabold text-slate-900">Formulir Laporan Kerusakan Facilities</h2>
+                                <p class="text-xs text-slate-500">Lengkapi detail pengaduan untuk diproses oleh Tim Pemeliharaan Setda</p>
+                            </div>
+                            <span id="scan-status-badge" class="bg-slate-100 text-slate-600 text-xs px-3 py-1 rounded-full font-medium border border-slate-200 flex items-center gap-1.5">
+                                <i data-lucide="info" class="w-3.5 h-3.5"></i> Input Manual / Scan QR
+                            </span>
+                        </div>
+
+                        <form id="laporForm" onsubmit="submitReport(event)" class="space-y-5">
+                            <!-- Kode Aset & Kategori (Auto-filled by Scan) -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Kode Aset / QR ID <span class="text-rose-500">*</span></label>
+                                    <div class="relative">
+                                        <input type="text" id="asset_code" required readonly placeholder="Scan QR Aset..." class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-mono font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:bg-white transition">
+                                        <i data-lucide="barcode" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Kategori Fasilitas <span class="text-rose-500">*</span></label>
+                                    <select id="asset_category" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:bg-white transition">
+                                        <option value="">-- Pilih Kategori --</option>
+                                        <option value="AC">Air Conditioner (AC)</option>
+                                        <option value="Lift">Lift Gedung</option>
+                                        <option value="Toilet">Sanitari & Toilet</option>
+                                        <option value="Lampu">Kelistrikan & Lampu</option>
+                                        <option value="Kendaraan">Kendaraan Dinas</option>
+                                        <option value="Lainnya">Fasilitas Lainnya</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Nama Fasilitas & Lokasi Spasial -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Nama Unit Aset & Lokasi Ruangan <span class="text-rose-500">*</span></label>
+                                <input type="text" id="asset_name" required placeholder="Contoh: AC Dual Inverter LT 2 / Toilet Pria Utama" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-sm text-slate-800 focus:ring-2 focus:ring-emerald-500 transition">
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Tingkat Urgensi Kerusakan</label>
+                                    <select id="urgency" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-sm font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500">
+                                        <option value="Biasa">Biasa (Toleransi 24 Jam)</option>
+                                        <option value="Penting">Penting (Mengganggu Pekerjaan)</option>
+                                        <option value="Darurat">DARURAT (Bahaya / Lift Mogok / Kebocoran)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Nama & Jabatan Pelapor <span class="text-rose-500">*</span></label>
+                                    <input type="text" id="reporter_name" required placeholder="Nama ASN / Non-ASN / Instansi" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-sm text-slate-800 focus:ring-2 focus:ring-emerald-500">
+                                </div>
+                            </div>
+
+                            <!-- Deskripsi Kerusakan -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Deskripsi Gejala Kerusakan <span class="text-rose-500">*</span></label>
+                                <textarea id="description" rows="3" required placeholder="Jelaskan kendala secara singkat (misal: AC mengeluarkan suara bising dan tidak dingin, air toilet tidak mengalir)..." class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-sm text-slate-800 focus:ring-2 focus:ring-emerald-500"></textarea>
+                            </div>
+
+                            <!-- Upload Foto Kerusakan -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Lampirkan Foto Bukti Kerusakan</label>
+                                <div class="flex items-center gap-3">
+                                    <label class="flex-1 border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-xl p-3 text-center cursor-pointer bg-slate-50 hover:bg-emerald-50/30 transition">
+                                        <i data-lucide="upload-cloud" class="w-6 h-6 text-slate-400 mx-auto mb-1"></i>
+                                        <span class="text-xs font-semibold text-slate-600 block">Klik untuk Ambil Foto / Upload</span>
+                                        <span class="text-[10px] text-slate-400">Format JPG, PNG (Maks 5MB)</span>
+                                        <input type="file" id="photo_file" accept="image/*" onchange="previewImage(event)" class="hidden">
+                                    </label>
+                                    <div id="image-preview-container" class="hidden w-20 h-20 rounded-xl border border-slate-200 bg-slate-100 overflow-hidden relative">
+                                        <img id="image-preview" src="#" alt="Preview" class="w-full h-full object-cover">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="pt-2">
+                                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg hover:shadow-emerald-600/20 flex items-center justify-center gap-2 text-base transition">
+                                    <i data-lucide="send" class="w-5 h-5"></i> Kirim Laporan Pengaduan Sekarang
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 2: LACAK TIKET ================= -->
+        <section id="tab-tracking" class="hidden space-y-6">
+            <div class="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm max-w-4xl mx-auto space-y-6">
+                <div class="text-center max-w-xl mx-auto space-y-2">
+                    <div class="bg-blue-100 text-blue-700 w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                        <i data-lucide="search" class="w-6 h-6"></i>
+                    </div>
+                    <h2 class="text-2xl font-extrabold text-slate-900">Lacak Status Pengaduan</h2>
+                    <p class="text-xs sm:text-sm text-slate-500">Masukkan Nomor Tiket Pengaduan Anda (contoh: LPR-2026-XXXX) untuk memantau progres perbaikan secara real-time.</p>
+                </div>
+
+                <!-- Input Search Tiket -->
+                <div class="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
+                    <input type="text" id="search_ticket_input" placeholder="Masukkan Kode Tiket..." class="flex-grow px-4 py-3 border border-slate-300 rounded-xl font-mono uppercase font-bold text-slate-800 focus:ring-2 focus:ring-blue-500">
+                    <button onclick="searchTicket()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl transition flex items-center justify-center gap-2">
+                        <i data-lucide="search" class="w-4 h-4"></i> Cari
+                    </button>
+                </div>
+
+                <!-- Hasil Tracking Container -->
+                <div id="ticket_result" class="hidden pt-6 border-t border-slate-100 space-y-6">
+                    <!-- Status Progress Bar -->
+                    <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-6 border-b border-slate-200 pb-4">
+                            <div>
+                                <span class="text-xs text-slate-500 uppercase font-bold tracking-wider">Nomor Tiket</span>
+                                <h3 id="res_ticket_id" class="text-xl font-mono font-extrabold text-emerald-700">LPR-2026-0001</h3>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-xs text-slate-500 block">Tanggal Pelaporan</span>
+                                <span id="res_created_at" class="text-xs font-semibold text-slate-700">21 Nov 2026, 08:30 WITA</span>
+                            </div>
+                        </div>
+
+                        <!-- Step Tracker Indicator -->
+                        <div class="relative py-4">
+                            <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-slate-200">
+                                <div id="progress_bar" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-emerald-500 transition-all duration-500" style="width: 33%"></div>
+                            </div>
+                            <div class="grid grid-cols-3 text-center text-xs font-bold">
+                                <div id="step_1" class="text-emerald-700">
+                                    <div class="w-6 h-6 rounded-full bg-emerald-600 text-white mx-auto flex items-center justify-center text-xs mb-1">1</div>
+                                    Laporan Terterima
+                                </div>
+                                <div id="step_2" class="text-slate-400">
+                                    <div id="step_2_badge" class="w-6 h-6 rounded-full bg-slate-300 text-slate-600 mx-auto flex items-center justify-center text-xs mb-1">2</div>
+                                    Diproses Teknisi
+                                </div>
+                                <div id="step_3" class="text-slate-400">
+                                    <div id="step_3_badge" class="w-6 h-6 rounded-full bg-slate-300 text-slate-600 mx-auto flex items-center justify-center text-xs mb-1">3</div>
+                                    Selesai Diperbaiki
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detail Tiket -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-2">
+                            <h4 class="font-bold text-slate-800 text-xs uppercase border-b pb-1 text-slate-400">Detail Aset & Lokasi</h4>
+                            <p><strong>Aset:</strong> <span id="res_asset_name">AC Dual Inverter LT 2</span></p>
+                            <p><strong>Kode Aset:</strong> <span id="res_asset_code" class="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-xs">AC-LT2-01</span></p>
+                            <p><strong>Pelapor:</strong> <span id="res_reporter">Ahmad Fauzi (Subbag Umum)</span></p>
+                            <p><strong>Urgensi:</strong> <span id="res_urgency" class="text-rose-600 font-bold">Darurat</span></p>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-2">
+                            <h4 class="font-bold text-slate-800 text-xs uppercase border-b pb-1 text-slate-400">Catatan Pemeliharaan</h4>
+                            <p><strong>Deskripsi Kendala:</strong> <span id="res_description">AC mati total dan meneteskan air.</span></p>
+                            <p><strong>Teknisi Penanggungjawab:</strong> <span id="res_technician" class="font-semibold text-slate-700">Tim AC Bagian Umum (Budi S.)</span></p>
+                            <p><strong>Estimasi Selesai (SLA):</strong> <span id="res_sla" class="text-emerald-700 font-semibold">&lt; 12 Jam Hari Ini</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 3: DASHBOARD PENGELOLA & TEKNISI ================= -->
+        <section id="tab-dashboard" class="hidden space-y-6">
+            <!-- Header Metrics -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                    <div class="bg-blue-100 text-blue-700 p-3 rounded-xl">
+                        <i data-lucide="inbox" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-extrabold text-slate-900" id="stat-total">12</div>
+                        <div class="text-xs text-slate-500 font-medium">Total Aduan Masuk</div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                    <div class="bg-amber-100 text-amber-700 p-3 rounded-xl">
+                        <i data-lucide="loader" class="w-6 h-6 animate-spin"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-extrabold text-slate-900" id="stat-process">3</div>
+                        <div class="text-xs text-slate-500 font-medium">Sedang Diproses</div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                    <div class="bg-emerald-100 text-emerald-700 p-3 rounded-xl">
+                        <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-extrabold text-slate-900" id="stat-done">9</div>
+                        <div class="text-xs text-slate-500 font-medium">Selesai Diperbaiki</div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                    <div class="bg-purple-100 text-purple-700 p-3 rounded-xl">
+                        <i data-lucide="zap" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-extrabold text-slate-900" id="stat-sla">100%</div>
+                        <div class="text-xs text-slate-500 font-medium">Kepatuhan SLA (&lt;24 Jam)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabel Monitoring Aduan Masuk -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden space-y-4 p-6">
+                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">Daftar Tiket & Antrean Perbaikan</h3>
+                        <p class="text-xs text-slate-500">Kelola dan perbarui status perbaikan sarana prasarana secara terpusat</p>
+                    </div>
+                    <!-- Filter Status -->
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-slate-500 font-semibold">Filter:</span>
+                        <select id="dashboard-filter" onchange="filterTickets()" class="bg-slate-50 border border-slate-200 text-xs rounded-xl px-3 py-2 font-medium">
+                            <option value="all">Semua Status</option>
+                            <option value="Terterima">Terterima</option>
+                            <option value="Diproses">Diproses</option>
+                            <option value="Selesai">Selesai</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Table Container -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-600">
+                        <thead class="bg-slate-50 text-slate-700 font-bold uppercase border-y border-slate-200">
+                            <tr>
+                                <th class="py-3 px-4">No. Tiket</th>
+                                <th class="py-3 px-4">Aset & Lokasi</th>
+                                <th class="py-3 px-4">Kategori</th>
+                                <th class="py-3 px-4">Pelapor</th>
+                                <th class="py-3 px-4">Urgensi</th>
+                                <th class="py-3 px-4">Status</th>
+                                <th class="py-3 px-4 text-center">Aksi / Update Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ticket-table-body" class="divide-y divide-slate-100 font-medium">
+                            <!-- Dynamic Content Rendered via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 4: GENERATOR QR CODE ASET ================= -->
+        <section id="tab-qr-generator" class="hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- SISI KIRI: Form Input Generator Stiker QR -->
+                <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <i data-lucide="qr-code" class="w-5 h-5 text-amber-600"></i> Generator Stiker QR Code Aset
+                        </h2>
+                        <p class="text-xs text-slate-500">Buat QR Code baru untuk ditempel pada unit AC, Lift, Toilet, atau Kendaraan Dinas.</p>
+                    </div>
+
+                    <form id="qrGenForm" onsubmit="generateCustomQR(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Kode Unik Aset / NUP</label>
+                            <input type="text" id="gen_code" required placeholder="Contoh: AC-LT3-08" class="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-sm font-mono font-bold">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Nama Unit Aset</label>
+                            <input type="text" id="gen_name" required placeholder="Contoh: AC Stand Inverter Hall Utama" class="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Lokasi Perkantoran</label>
+                            <input type="text" id="gen_location" required placeholder="Contoh: Gedung B - Lantai 3 Ruang Rapat" class="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Kategori Fasilitas</label>
+                            <select id="gen_category" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm">
+                                <option value="AC">Air Conditioner (AC)</option>
+                                <option value="Lift">Lift Gedung</option>
+                                <option value="Toilet">Sanitari & Toilet</option>
+                                <option value="Lampu">Kelistrikan & Lampu</option>
+                                <option value="Kendaraan">Kendaraan Dinas</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 rounded-xl transition text-sm flex items-center justify-center gap-2">
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i> Generate Stiker QR Code
+                        </button>
+                    </form>
+                </div>
+
+                <!-- SISI KANAN: Preview Stiker Siap Cetak -->
+                <div class="lg:col-span-7 space-y-4">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm text-center space-y-4">
+                        <h3 class="text-sm font-bold text-slate-700 uppercase">Preview Stiker QR Code Aset (Siap Cetak)</h3>
+                        
+                        <!-- Template Stiker Fisik -->
+                        <div id="print-sticker-area" class="max-w-sm mx-auto bg-white border-4 border-slate-900 rounded-2xl p-6 text-slate-900 space-y-3 shadow-md relative">
+                            <!-- Header Stiker -->
+                            <div class="border-b-2 border-slate-900 pb-2">
+                                <div class="text-[10px] font-extrabold tracking-wider uppercase text-emerald-700">Pemerintah Kota Kendari</div>
+                                <div class="font-extrabold text-sm tracking-tight">SETDA KOTA KENDARI • LAPOR CEPAT</div>
+                                <div class="text-[9px] text-slate-500">Scan untuk Lapor Kerusakan Fasilitas</div>
+                            </div>
+
+                            <!-- QR Display Container -->
+                            <div class="py-2 flex justify-center">
+                                <div id="qrcode-display" class="p-2 border-2 border-slate-200 rounded-xl bg-white shadow-inner"></div>
+                            </div>
+
+                            <!-- Detail Aset Stiker -->
+                            <div class="bg-slate-100 p-2.5 rounded-xl text-left border border-slate-200 space-y-0.5">
+                                <div class="flex justify-between items-center font-mono font-bold text-xs text-emerald-800">
+                                    <span id="stk_code">AC-LT2-01</span>
+                                    <span id="stk_cat" class="text-[9px] bg-emerald-200 px-1.5 py-0.5 rounded text-emerald-900 uppercase">AC</span>
+                                </div>
+                                <div id="stk_name" class="font-bold text-xs text-slate-800 truncate">Air Conditioner (AC) Dual Inverter</div>
+                                <div id="stk_loc" class="text-[10px] text-slate-500 truncate">Gedung Utama - Lantai 2</div>
+                            </div>
+
+                            <div class="text-[9px] text-slate-400 font-semibold uppercase">Bagian Umum Setda Kota Kendari</div>
+                        </div>
+
+                        <!-- Tombol Cetak -->
+                        <div class="pt-2 flex justify-center gap-3">
+                            <button onclick="window.print()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition flex items-center gap-2">
+                                <i data-lucide="printer" class="w-4 h-4"></i> Cetak Stiker Aset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-white border-t border-slate-200 mt-12 py-6 no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-500">
+            <div class="flex items-center gap-2">
+                <span class="font-bold text-slate-800">LAPOR CEPAT</span>
+                <span>• Inovasi Digitalisasi Sarana Prasarana SPBE Kota Kendari</span>
+            </div>
+            <div>
+                © 2026 Bagian Umum Sekretariat Daerah Kota Kendari
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL NOTIFIKASI BERHASIL -->
+    <div id="success-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center space-y-4 shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
+                <i data-lucide="check-circle" class="w-10 h-10"></i>
+            </div>
+            <div>
+                <h3 class="text-xl font-extrabold text-slate-900">Laporan Berhasil Terkirim!</h3>
+                <p class="text-xs text-slate-500 mt-1">Sistem telah meneruskan pengaduan ke WhatsApp / Dashboard Teknisi Bagian Umum.</p>
+            </div>
+            
+            <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl font-mono text-center">
+                <span class="text-[10px] text-slate-400 block font-semibold uppercase">Nomor Tiket Anda</span>
+                <span id="modal-ticket-id" class="text-lg font-extrabold text-emerald-700">LPR-2026-0000</span>
+            </div>
+
+            <button onclick="closeSuccessModal()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition text-sm">
+                Tutup & Lacak Status
+            </button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT APP LOGIC -->
+    <script>
+        // Data Mock Tiket Pengaduan Inisial
+        let ticketsData = [
+            {
+                id: 'LPR-2026-0012',
+                assetCode: 'AC-LT2-01',
+                assetName: 'Air Conditioner (AC) Dual Inverter 2PK',
+                category: 'AC',
+                location: 'Gedung Utama - Lantai 2',
+                reporter: 'Ahmad Fauzi (Bagian Hukum)',
+                description: 'Unit AC tidak dingin dan mengeluarkan air menetes di meja kerja.',
+                urgency: 'Darurat',
+                status: 'Diproses',
+                technician: 'Budi Santoso (Teknisi AC)',
+                createdAt: '21 Nov 2026, 08:15 WITA'
+            },
+            {
+                id: 'LPR-2026-0011',
+                assetCode: 'LFT-GD-02',
+                assetName: 'Lift Penumpang Utama Gedung A',
+                category: 'Lift',
+                location: 'Gedung Utama - Lobby Utama',
+                reporter: 'Rina Wati (Pelayanan Publik)',
+                description: 'Pintu lift tersendat saat menutup di lantai 1.',
+                urgency: 'Darurat',
+                status: 'Diproses',
+                technician: 'Tim Vendor Lift OTIS',
+                createdAt: '21 Nov 2026, 07:45 WITA'
+            },
+            {
+                id: 'LPR-2026-0010',
+                assetCode: 'TLT-PR-03',
+                assetName: 'Toilet Pria & Urinoir 03',
+                category: 'Toilet',
+                location: 'Gedung Sekretariat - Lantai 1',
+                reporter: 'Eko Prasetyo (ASN)',
+                description: 'Kran air wastafel tersumbat.',
+                urgency: 'Biasa',
+                status: 'Selesai',
+                technician: 'Hendra (Plumbing Setda)',
+                createdAt: '20 Nov 2026, 14:20 WITA'
+            },
+            {
+                id: 'LPR-2026-0009',
+                assetCode: 'KDN-DT-09',
+                assetName: 'Kendaraan Dinas Toyota Innova DT 1020 A',
+                category: 'Kendaraan',
+                location: 'Parkiran Pejabat Setda',
+                reporter: 'Sukarman (Driver Kedinasan)',
+                description: 'AC mobil kurang dingin dan lampu rem kanan mati.',
+                urgency: 'Penting',
+                status: 'Selesai',
+                technician: 'Bengkel Mitra Setda',
+                createdAt: '19 Nov 2026, 11:00 WITA'
+            }
+        ];
+
+        let html5QrCode = null;
+        let qrGeneratorObj = null;
+
+        // Inisialisasi Aplikasi saat Load
+        window.onload = function() {
+            lucide.createIcons();
+            renderDashboardTable();
+            updateDashboardMetrics();
+            initDefaultQR();
+        };
+
+        // Navigation Switch Tab
+        function switchTab(tabName) {
+            const tabs = ['pelaporan', 'tracking', 'dashboard', 'qr-generator'];
+            tabs.forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+            });
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+
+            // Toggle Class Tab Nav active
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-white', 'text-slate-700', 'shadow-sm');
+                btn.classList.add('text-slate-600');
+            });
+            const activeBtn = document.getElementById(`nav-${tabName}`);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-white', 'text-slate-700', 'shadow-sm');
+            }
+
+            // Stop Camera Scanner jika berpindah dari tab pelaporan
+            if (tabName !== 'pelaporan' && html5QrCode) {
+                try {
+                    html5QrCode.stop();
+                } catch(e) {}
+            }
+        }
+
+        // Simulator QR Scan
+        function simulateQRScan(code, name, location, category) {
+            document.getElementById('asset_code').value = code;
+            document.getElementById('asset_name').value = `${name} (${location})`;
+            document.getElementById('asset_category').value = category;
+
+            // Highlight Badge Status
+            const badge = document.getElementById('scan-status-badge');
+            badge.className = "bg-emerald-100 text-emerald-800 text-xs px-3 py-1 rounded-full font-bold border border-emerald-300 flex items-center gap-1.5 animate-bounce";
+            badge.innerHTML = `<i data-lucide="check-circle" class="w-3.5 h-3.5"></i> QR Code Terdeteksi!`;
+            lucide.createIcons();
+        }
+
+        // Reset Form
+        function resetReportForm() {
+            document.getElementById('laporForm').reset();
+            document.getElementById('image-preview-container').classList.add('hidden');
+            const badge = document.getElementById('scan-status-badge');
+            badge.className = "bg-slate-100 text-slate-600 text-xs px-3 py-1 rounded-full font-medium border border-slate-200 flex items-center gap-1.5";
+            badge.innerHTML = `<i data-lucide="info" class="w-3.5 h-3.5"></i> Input Manual / Scan QR`;
+            lucide.createIcons();
+        }
+
+        // Camera Scanner Handler
+        function startQRScanner() {
+            document.getElementById('qr-placeholder').classList.add('hidden');
+            html5QrCode = new Html5Qrcode("qr-reader");
+            
+            const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+                // Contoh Format QR Payload: KODE|NAMA|LOKASI|KATEGORI
+                const parts = decodedText.split('|');
+                if (parts.length >= 4) {
+                    simulateQRScan(parts[0], parts[1], parts[2], parts[3]);
+                } else {
+                    document.getElementById('asset_code').value = decodedText;
+                }
+                html5QrCode.stop();
+            };
+            const config = { fps: 10, qrbox: { width: 200, height: 200 } };
+            html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback)
+                .catch(err => {
+                    alert("Kamera tidak diizinkan atau tidak ditemukan. Silakan pilih aset simulasi.");
+                    document.getElementById('qr-placeholder').classList.remove('hidden');
+                });
+        }
+
+        // Preview Image Upload
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('image-preview').src = e.target.result;
+                    document.getElementById('image-preview-container').classList.remove('hidden');
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Submit Form Pelaporan
+        function submitReport(e) {
+            e.preventDefault();
+            
+            const randomNum = Math.floor(1000 + Math.random() * 9000);
+            const newTicketId = `LPR-2026-${randomNum}`;
+
+            const newTicket = {
+                id: newTicketId,
+                assetCode: document.getElementById('asset_code').value || 'ASET-GENERIC',
+                assetName: document.getElementById('asset_name').value,
+                category: document.getElementById('asset_category').value,
+                location: 'Sekretariat Daerah Kota Kendari',
+                reporter: document.getElementById('reporter_name').value,
+                description: document.getElementById('description').value,
+                urgency: document.getElementById('urgency').value,
+                status: 'Terterima',
+                technician: 'Menunggu Penugasan Teknisi',
+                createdAt: new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) + ' WITA'
+            };
+
+            // Simpan Ke Memory State
+            ticketsData.unshift(newTicket);
+
+            // Update UI & Modal
+            document.getElementById('modal-ticket-id').innerText = newTicketId;
+            document.getElementById('success-modal').classList.remove('hidden');
+
+            // Refresh Dashboard & Tracking
+            renderDashboardTable();
+            updateDashboardMetrics();
+            resetReportForm();
+        }
+
+        function closeSuccessModal() {
+            document.getElementById('success-modal').classList.add('hidden');
+            // Auto Switch ke Lacak Tiket
+            switchTab('tracking');
+            document.getElementById('search_ticket_input').value = document.getElementById('modal-ticket-id').innerText;
+            searchTicket();
+        }
+
+        // Lacak Tiket Function
+        function searchTicket() {
+            const query = document.getElementById('search_ticket_input').value.trim().toUpperCase();
+            const ticket = ticketsData.find(t => t.id.toUpperCase() === query);
+
+            if (!ticket) {
+                alert('Nomor tiket tidak ditemukan. Pastikan kode tiket benar (contoh: LPR-2026-0012).');
+                return;
+            }
+
+            // Render Detail Tiket
+            document.getElementById('ticket_result').classList.remove('hidden');
+            document.getElementById('res_ticket_id').innerText = ticket.id;
+            document.getElementById('res_created_at').innerText = ticket.createdAt;
+            document.getElementById('res_asset_name').innerText = ticket.assetName;
+            document.getElementById('res_asset_code').innerText = ticket.assetCode;
+            document.getElementById('res_reporter').innerText = ticket.reporter;
+            document.getElementById('res_urgency').innerText = ticket.urgency;
+            document.getElementById('res_description').innerText = ticket.description;
+            document.getElementById('res_technician').innerText = ticket.technician;
+
+            // Render Step Status Bar
+            const pBar = document.getElementById('progress_bar');
+            const s2Badge = document.getElementById('step_2_badge');
+            const s3Badge = document.getElementById('step_3_badge');
+            const s2Text = document.getElementById('step_2');
+            const s3Text = document.getElementById('step_3');
+
+            if (ticket.status === 'Terterima') {
+                pBar.style.width = '33%';
+                s2Badge.className = 'w-6 h-6 rounded-full bg-slate-200 text-slate-500 mx-auto flex items-center justify-center text-xs mb-1';
+                s3Badge.className = 'w-6 h-6 rounded-full bg-slate-200 text-slate-500 mx-auto flex items-center justify-center text-xs mb-1';
+                s2Text.className = 'text-slate-400';
+                s3Text.className = 'text-slate-400';
+            } else if (ticket.status === 'Diproses') {
+                pBar.style.width = '66%';
+                s2Badge.className = 'w-6 h-6 rounded-full bg-amber-500 text-white mx-auto flex items-center justify-center text-xs mb-1';
+                s3Badge.className = 'w-6 h-6 rounded-full bg-slate-200 text-slate-500 mx-auto flex items-center justify-center text-xs mb-1';
+                s2Text.className = 'text-amber-600 font-bold';
+                s3Text.className = 'text-slate-400';
+            } else if (ticket.status === 'Selesai') {
+                pBar.style.width = '100%';
+                s2Badge.className = 'w-6 h-6 rounded-full bg-emerald-600 text-white mx-auto flex items-center justify-center text-xs mb-1';
+                s3Badge.className = 'w-6 h-6 rounded-full bg-emerald-600 text-white mx-auto flex items-center justify-center text-xs mb-1';
+                s2Text.className = 'text-emerald-700 font-bold';
+                s3Text.className = 'text-emerald-700 font-bold';
+            }
+        }
+
+        // Render Dashboard Table & Actions
+        function renderDashboardTable(filter = 'all') {
+            const tbody = document.getElementById('ticket-table-body');
+            tbody.innerHTML = '';
+
+            const filteredData = filter === 'all' 
+                ? ticketsData 
+                : ticketsData.filter(t => t.status === filter);
+
+            filteredData.forEach(t => {
+                let badgeClass = 'bg-blue-100 text-blue-800';
+                if (t.status === 'Diproses') badgeClass = 'bg-amber-100 text-amber-800';
+                if (t.status === 'Selesai') badgeClass = 'bg-emerald-100 text-emerald-800';
+
+                let urgencyClass = 'text-slate-600';
+                if (t.urgency === 'Darurat') urgencyClass = 'text-rose-600 font-bold';
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-mono font-bold text-slate-900">${t.id}</td>
+                    <td class="py-3 px-4">
+                        <div class="font-bold text-slate-800">${t.assetName}</div>
+                        <div class="text-[10px] text-slate-400 font-mono">${t.assetCode}</div>
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded border border-slate-200">${t.category}</span>
+                    </td>
+                    <td class="py-3 px-4 text-slate-700">${t.reporter}</td>
+                    <td class="py-3 px-4 ${urgencyClass}">${t.urgency}</td>
+                    <td class="py-3 px-4">
+                        <span class="${badgeClass} text-[11px] font-bold px-2.5 py-1 rounded-full">${t.status}</span>
+                    </td>
+                    <td class="py-3 px-4 text-center">
+                        <select onchange="updateStatus('${t.id}', this.value)" class="bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-semibold focus:ring-2 focus:ring-emerald-500">
+                            <option value="Terterima" ${t.status === 'Terterima' ? 'selected' : ''}>Terterima</option>
+                            <option value="Diproses" ${t.status === 'Diproses' ? 'selected' : ''}>Diproses</option>
+                            <option value="Selesai" ${t.status === 'Selesai' ? 'selected' : ''}>Selesai</option>
+                        </select>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Update Ticket Status
+        function updateStatus(ticketId, newStatus) {
+            const ticket = ticketsData.find(t => t.id === ticketId);
+            if (ticket) {
+                ticket.status = newStatus;
+                if (newStatus === 'Diproses' && ticket.technician.includes('Menunggu')) {
+                    ticket.technician = 'Petugas Pemeliharaan Bagian Umum';
+                }
+                updateDashboardMetrics();
+                renderDashboardTable(document.getElementById('dashboard-filter').value);
+            }
+        }
+
+        // Filter Tickets
+        function filterTickets() {
+            const filterValue = document.getElementById('dashboard-filter').value;
+            renderDashboardTable(filterValue);
+        }
+
+        // Update Top Metrics
+        function updateDashboardMetrics() {
+            const total = ticketsData.length;
+            const process = ticketsData.filter(t => t.status === 'Diproses').length;
+            const done = ticketsData.filter(t => t.status === 'Selesai').length;
+
+            document.getElementById('stat-total').innerText = total;
+            document.getElementById('stat-process').innerText = process;
+            document.getElementById('stat-done').innerText = done;
+        }
+
+        // Generator Stiker QR Custom
+        function initDefaultQR() {
+            const defaultPayload = "AC-LT2-01|Air Conditioner (AC) Dual Inverter|Gedung Utama - Lantai 2|AC";
+            document.getElementById('qrcode-display').innerHTML = '';
+            qrGeneratorObj = new QRCode(document.getElementById("qrcode-display"), {
+                text: defaultPayload,
+                width: 140,
+                height: 140,
+                colorDark : "#0f172a",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+        }
+
+        function generateCustomQR(e) {
+            e.preventDefault();
+            const code = document.getElementById('gen_code').value;
+            const name = document.getElementById('gen_name').value;
+            const loc = document.getElementById('gen_location').value;
+            const cat = document.getElementById('gen_category').value;
+
+            // Update Label Stiker
+            document.getElementById('stk_code').innerText = code;
+            document.getElementById('stk_cat').innerText = cat;
+            document.getElementById('stk_name').innerText = name;
+            document.getElementById('stk_loc').innerText = loc;
+
+            // Generate Payload QR Code
+            const payload = `${code}|${name}|${loc}|${cat}`;
+            document.getElementById('qrcode-display').innerHTML = '';
+            new QRCode(document.getElementById("qrcode-display"), {
+                text: payload,
+                width: 140,
+                height: 140,
+                colorDark : "#0f172a",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+        }
+    </script>
+</body>
+</html>
